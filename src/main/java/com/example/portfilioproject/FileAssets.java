@@ -1,6 +1,7 @@
 package com.example.portfilioproject;
 
 import javafx.scene.image.Image;
+import javafx.scene.media.Media;
 
 import java.util.Objects;
 //import javafx.scene.media.Media;
@@ -40,8 +41,8 @@ public class FileAssets  {
     public static Image PLR_X_MSG;
 
     //Music
-//    public static Media BKG_MUSIC;
-//    public static Media FAST_BKG_MUSIC;
+    public static Media BKG_MUSIC;
+    public static Media FAST_BKG_MUSIC;
 
 
     /**
@@ -91,7 +92,7 @@ public class FileAssets  {
         PLR_O_MSG = loadImages("images/texts/plrOMsg.png");
         PLR_X_MSG = loadImages("images/texts/plrXMsg.png");
 
-//        //Music
+////        //Music
 //        BKG_MUSIC = loadMedia("images/buttons/bkgMusic.wav");
 //        FAST_BKG_MUSIC = loadMedia("images/buttons/bkgMusicSpeed.wav");
 
@@ -107,11 +108,10 @@ public class FileAssets  {
     public static Image loadImages(String path) {
         return new Image(Objects.requireNonNull(FileAssets.class.getResourceAsStream("/" + path)));
     }
-
+//
 //    public static Media loadMedia(String filePath) {
 //        // Using getClass().getResource() to access files from the resources folder
-//        String resourcePath = FileAssets.class.getResource("/"+filePath).toExternalForm();
-//        return new Media(resourcePath);
+//        return new Media(Objects.requireNonNull(FileAssets.class.getResourceAsStream("/"+filePath).toString()));
 //    }
 
 

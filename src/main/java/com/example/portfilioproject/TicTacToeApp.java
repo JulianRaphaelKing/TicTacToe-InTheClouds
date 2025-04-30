@@ -9,8 +9,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+
+import java.net.URISyntaxException;
 
 
 public class TicTacToeApp extends Application {
@@ -32,12 +36,18 @@ public class TicTacToeApp extends Application {
         FileAssets.loadFiles();
 
         //load music & mediaPlayers:
-        //Media music = new Media("file:///" + "src/main/resources/images/buttons/bkgMusic.wav");
-        //Media fastMusic = new Media("file:///" + "src/main/resources/images/buttons/bkgMusicSpeed.wav");
-        //MediaPlayer mediaPlayer = new MediaPlayer(music);
-        //MediaPlayer fastMediaPlayer = new MediaPlayer(fastMusic);
-        //mediaPlayer.setVolume(0.5);
-        //mediaPlayer.play();
+//        Media regMusic = null;
+//        try {
+//            regMusic = new Media(getClass().getResource("/images/bkgMusic.wav").toURI().toString());
+//        } catch (URISyntaxException e) {
+//            throw new RuntimeException(e);
+//        }
+        //Media fastMusic = new Media("images/bkgMusicSpeed.wav");
+//        MediaPlayer mediaPlayer = new MediaPlayer(regMusic);
+//        //MediaPlayer fastMediaPlayer = new MediaPlayer(fastMusic);
+//        mediaPlayer.setVolume(0.5);
+//        mediaPlayer.play();
+
 
         //set scene to main screen
         Scene scene = new Scene(getMainPane(primaryStage), 675, 800);
