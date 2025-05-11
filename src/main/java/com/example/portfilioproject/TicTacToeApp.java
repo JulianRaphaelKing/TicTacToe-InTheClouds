@@ -7,14 +7,23 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 
 public class TicTacToeApp extends Application {
@@ -25,6 +34,11 @@ public class TicTacToeApp extends Application {
     private Boolean preview = false;
     private char currentPlayer = 'X';
     private boolean[][] isClicked = new boolean[3][3];
+    private static int xWinCount = 0;
+    private static int oWinCount = 0;
+    private static Label xWinsText = new Label("0");
+    private static Label oWinsText = new Label("0");
+    private static Stage menuStage;
 
     public static void main(String[] args) {
         launch(args);
@@ -34,19 +48,6 @@ public class TicTacToeApp extends Application {
     public void start(Stage primaryStage) {
         //load images
         FileAssets.loadFiles();
-
-        //load music & mediaPlayers:
-//        Media regMusic = null;
-//        try {
-//            regMusic = new Media(getClass().getResource("/images/bkgMusic.wav").toURI().toString());
-//        } catch (URISyntaxException e) {
-//            throw new RuntimeException(e);
-//        }
-        //Media fastMusic = new Media("images/bkgMusicSpeed.wav");
-//        MediaPlayer mediaPlayer = new MediaPlayer(regMusic);
-//        //MediaPlayer fastMediaPlayer = new MediaPlayer(fastMusic);
-//        mediaPlayer.setVolume(0.5);
-//        mediaPlayer.play();
 
 
         //set scene to main screen
@@ -153,7 +154,7 @@ public class TicTacToeApp extends Application {
         mainPane.setTop(topBar);
 
         //apply title pane to the center of the border pane
-        mainPane.setCenter(getTitlePane());
+        mainPane.setCenter(getTitlePane(primaryStage));
 
         //wrap everything with StackPane
         StackPane paneLayering = new StackPane();
@@ -168,12 +169,17 @@ public class TicTacToeApp extends Application {
      *
      * @return a StackPane containing the title screen layout with interactive start button
      */
-    private Pane getTitlePane() {
+    private Pane getTitlePane(Stage stage) {
         //Create center of the screen
         ImageView clouds = new ImageView(FileAssets.BACKGROUND_CLOUDS);
+
         Button btnStart = new Button();
         btnStart.setGraphic(new ImageView(FileAssets.START));
         btnStart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+
+        Button btnMenu = new Button();
+        btnMenu.setGraphic(new ImageView(FileAssets.MENU));
+        btnMenu.setStyle("-fx-background-color: transparent; -fx-padding: 0");
 
         //Handle hover actions for button start
         BooleanProperty isStartHovered = new SimpleBooleanProperty(false);
@@ -194,12 +200,24 @@ public class TicTacToeApp extends Application {
         btnStart.setOnMouseEntered(e -> isStartHovered.set(true));
         btnStart.setOnMouseExited(e -> isStartHovered.set(false));
         btnStart.setOnAction(e -> {
-            mainPane.setCenter(getGamePane());
+            mainPane.setCenter(getGamePane(stage));
         });
+
+        btnMenu.setOnMouseEntered(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU_HOVER));});
+        btnMenu.setOnMouseExited(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU));});
+        btnMenu.setOnAction(e -> {getMenu(stage);});
 
         //layer for everything that belongs in the center
         StackPane centerLayering = new StackPane();
-        centerLayering.getChildren().addAll(clouds, btnStart);
+
+        VBox centerContent = new VBox();
+        centerContent.setAlignment(Pos.CENTER);
+        centerContent.getChildren().add(btnStart);
+
+        StackPane.setAlignment(btnMenu, Pos.TOP_RIGHT);
+        StackPane.setMargin(btnMenu, new Insets(25, 35, 0, 0));
+
+        centerLayering.getChildren().addAll(clouds, centerContent, btnMenu);
 
         return centerLayering;
     }
@@ -213,7 +231,7 @@ public class TicTacToeApp extends Application {
      *
      * @return a StackPane containing the game board elements, including the grid and background
      */
-    private Pane getGamePane() {
+    private Pane getGamePane(Stage stage) {
         int board[][] = resetBoard();
         currentPlayer = 'X';
 
@@ -242,7 +260,7 @@ public class TicTacToeApp extends Application {
                 //when grid button is clicked, call turns method
                 gridBtn.setOnAction(e -> {
                     if(!isClicked[row][col]) {
-                        turns(row, col, gridBtn, currentPlayer, board);
+                        turns(row, col, gridBtn, currentPlayer, board, stage);
                         currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
                     }
 
@@ -285,12 +303,12 @@ public class TicTacToeApp extends Application {
      * @param currentPlayer the current player's symbol ('X' or 'O')
      * @param board the 2D integer array representing the current state of the game board
      */
-    private void turns(int row, int col, Button gridBtn, char currentPlayer, int[][] board){
+    private void turns(int row, int col, Button gridBtn, char currentPlayer, int[][] board, Stage stage){
         gridBtn.setGraphic(new ImageView(currentPlayer == 'X' ? FileAssets.X : FileAssets.O));
         isClicked[row][col] = true;
         board[row][col] = currentPlayer == 'X' ? 0 : 1;
         if(checkWin(row, col, currentPlayer, board)) {
-            mainPane.setCenter(currentPlayer == 'X' ? getXWinsPane() : getOWinsPane());
+            mainPane.setCenter(currentPlayer == 'X' ? getXWinsPane(stage) : getOWinsPane(stage));
         }
     }
 
@@ -360,7 +378,9 @@ public class TicTacToeApp extends Application {
      *
      * @return a StackPane containing the "X Wins" screen layout, including background, message, and restart button
      */
-    private Pane getXWinsPane() {
+    private Pane getXWinsPane(Stage stage) {
+        xWinCount++;
+        xWinsText.setText(String.valueOf(xWinCount));
         StackPane winnerLayer = new StackPane();
 
         ImageView bkgDay = new ImageView(FileAssets.BKG_DAY);
@@ -372,7 +392,7 @@ public class TicTacToeApp extends Application {
         restart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
         restart.setOnAction(e -> {
             restartIsClicked();
-            mainPane.setCenter(getTitlePane());
+            mainPane.setCenter(getTitlePane(stage));
         });
         restart.setOnMouseEntered(mouseEvent -> {
             restart.setGraphic(new ImageView(FileAssets.RESTART_HOVER));
@@ -400,7 +420,10 @@ public class TicTacToeApp extends Application {
      *
      * @return a StackPane containing the "O Wins" screen layout, including background, message, and restart button
      */
-    private Pane getOWinsPane() {
+    private Pane getOWinsPane(Stage stage) {
+        oWinCount++;
+        oWinsText.setText(String.valueOf(oWinCount));
+
         StackPane winnerLayer = new StackPane();
 
         ImageView bkgNight = new ImageView(FileAssets.BKG_NIGHT);
@@ -412,7 +435,7 @@ public class TicTacToeApp extends Application {
         restart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
         restart.setOnAction(e -> {
             restartIsClicked();
-            mainPane.setCenter(getTitlePane());
+            mainPane.setCenter(getTitlePane(stage));
         });
         restart.setOnMouseEntered(mouseEvent -> {
             restart.setGraphic(new ImageView(FileAssets.RESTART_HOVER));
@@ -429,6 +452,134 @@ public class TicTacToeApp extends Application {
         winnerLayer.getChildren().addAll(bkgNight, messageContainer);
 
         return winnerLayer;
+    }
+
+    public static void getMenu(Stage stage) {
+        if (menuStage != null && menuStage.isShowing()) {
+            menuStage.toFront();
+            return; // already open, do nothing
+        }
+        if (menuStage != null && !menuStage.isShowing()) {
+            menuStage.show(); // was hidden → show it again
+            return;
+        }
+
+        menuStage = new Stage();
+        menuStage.initStyle(StageStyle.UNDECORATED);
+        menuStage.setHeight(395);
+        menuStage.setWidth(265);
+        menuStage.setResizable(false);
+
+        StackPane menuStack = new StackPane();
+        menuStage.setX(stage.getX() + 20);
+        menuStage.setY(stage.getY() + 50);
+
+        ImageView MenuBackground = new ImageView(FileAssets.MENU_BKG);
+        MenuBackground.setFitHeight(menuStage.getHeight());
+        MenuBackground.setFitWidth(menuStage.getWidth());
+        //make screen draggable only at the top
+        menuStack.setOnMousePressed(e -> {
+            menuStage.setX(e.getScreenX());
+            menuStage.setY(e.getScreenY());
+        });
+        menuStack.setOnMouseDragged(e -> {
+            menuStage.setX(e.getScreenX());
+            menuStage.setY(e.getScreenY());
+        });
+
+        VBox menuLayout = new VBox(20);
+        menuLayout.setAlignment(Pos.TOP_CENTER);
+        menuLayout.setPadding(new Insets(0, 40, 40, 40));
+
+        // --- SPACER TO PUSH DOWN SCORE BUTTONS ---
+        Region spacerBetweenIconAndScores = new Region();
+        spacerBetweenIconAndScores.setPrefHeight(30); // add more space below ≡
+
+        Region spacerBelowScoreBoxes = new Region();
+        VBox.setVgrow(spacerBelowScoreBoxes, Priority.ALWAYS);
+
+        // Create Labels for X and O win counts
+        xWinsText.setStyle("-fx-font-size: 32px; -fx-text-fill: #5a5a66;"); // style to match background
+        xWinsText.setLayoutX(186); // tweak this based on image box
+        xWinsText.setLayoutY(111); // tweak this too
+
+        oWinsText.setStyle("-fx-font-size: 32px; -fx-text-fill: #5a5a66;");
+        oWinsText.setLayoutX(186); // same X, different Y
+        oWinsText.setLayoutY(178); // tweak as needed
+
+    // Add these to a Pane (which allows absolute positioning)
+        Pane labelLayer = new Pane();
+        labelLayer.getChildren().addAll(xWinsText, oWinsText);
+
+        // Buttons
+        Button btnResetScores = new Button();
+        btnResetScores.setGraphic(new ImageView(FileAssets.RESET_SCORES));
+        btnResetScores.setStyle("-fx-background-color: transparent;");
+        btnResetScores.setOnMouseEntered(mouseEvent -> {btnResetScores.setGraphic(new ImageView(FileAssets.RESET_SCORES_HOVER));});
+        btnResetScores.setOnMouseExited(mouseEvent -> {btnResetScores.setGraphic(new ImageView(FileAssets.RESET_SCORES));});
+        btnResetScores.setOnAction(e -> {
+            xWinCount = 0;
+            oWinCount = 0;
+            xWinsText.setText("0");
+            oWinsText.setText("0");
+        });
+
+        Button btnExportScores = new Button();
+        btnExportScores.setGraphic(new ImageView(FileAssets.EXPORT_SCORES));
+        btnExportScores.setStyle("-fx-background-color: transparent;");
+        btnExportScores.setOnMouseEntered(mouseEvent -> btnExportScores.setGraphic(new ImageView(FileAssets.EXPORT_SCORES_HOVER)));
+        btnExportScores.setOnMouseExited(mouseEvent -> btnExportScores.setGraphic(new ImageView(FileAssets.EXPORT_SCORES)));
+        btnExportScores.setOnAction(e -> exportScoresToFile());
+
+        Button btnMenuClose = new Button();
+        btnMenuClose.setGraphic(new ImageView(FileAssets.MENU_CLOSE));
+        btnMenuClose.setStyle("-fx-background-color: transparent;");
+        btnMenuClose.setOnMouseEntered(mouseEvent -> btnMenuClose.setGraphic(new ImageView(FileAssets.MENU_CLOSE_HOVER)));
+        btnMenuClose.setOnMouseExited(mouseEvent -> btnMenuClose.setGraphic(new ImageView(FileAssets.MENU_CLOSE)));
+        btnMenuClose.setOnAction(e -> menuStage.hide());
+
+        HBox topBar = new HBox();
+        topBar.setPadding(new Insets(20, 20, 0, 20)); // Top, Right, Bottom, Left
+        topBar.setAlignment(Pos.TOP_RIGHT);
+        topBar.getChildren().add(btnMenuClose);
+
+        VBox buttonBox = new VBox(20); // spacing between reset/export
+        buttonBox.setPadding(new Insets(0, 0, -20, 0)); // push everything down more
+        buttonBox.setAlignment(Pos.BOTTOM_CENTER);
+        buttonBox.getChildren().addAll(btnResetScores, btnExportScores);
+
+
+
+
+        menuLayout.getChildren().addAll(
+                topBar,
+                spacerBetweenIconAndScores,
+                spacerBelowScoreBoxes,
+                buttonBox
+        );
+
+        menuStack.getChildren().addAll(MenuBackground, labelLayer, menuLayout);
+        Scene menuScene = new Scene(menuStack, 265, 395); // use same dimensions
+        menuStage.setScene(menuScene);
+        menuStage.show();
+    }
+
+    private static void exportScoresToFile() {
+        String fileName = "scores_log.txt";
+        try (PrintWriter writer = new PrintWriter(new FileWriter(fileName, true))) {
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
+
+
+            writer.println("X Wins: " + xWinCount);
+            writer.println("O Wins: " + oWinCount);
+            writer.println("Timestamp: " + now.format(formatter));
+            writer.println("----------------------------");
+
+            System.out.println("Scores exported to " + fileName);
+        } catch (IOException e) {
+            System.err.println("Error writing to score log: " + e.getMessage());
+        }
     }
 
     /**

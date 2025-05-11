@@ -17,6 +17,17 @@ public class FileAssets  {
     public static Image MUTE;
     public static Image MUTE_HOVER;
 
+    //Menu
+    public static Image MENU_BKG;
+    public static Image MENU;
+    public static Image MENU_HOVER;
+    public static Image MENU_CLOSE;
+    public static Image MENU_CLOSE_HOVER;
+    public static Image RESET_SCORES;
+    public static Image RESET_SCORES_HOVER;
+    public static Image EXPORT_SCORES;
+    public static Image EXPORT_SCORES_HOVER;
+
     //Play Buttons
     public static Image START;
     public static Image START_HOVER;
@@ -68,6 +79,18 @@ public class FileAssets  {
         MINIMIZE_HOVER = loadImages("images/buttons/btnMinHover.png");
         MUTE = loadImages("images/buttons/btnMute.png");
         MUTE_HOVER = loadImages("images/buttons/btnMuted.png");
+
+        //Menu
+        MENU_BKG = loadImages("images/backgrounds/MenuStageBkg.png");
+        MENU = loadImages("images/buttons/btnMenu.png");
+        MENU_HOVER = loadImages("images/buttons/btnMenuHover.png");
+        MENU_CLOSE = loadImages("images/buttons/btnMenuClose.png");
+        MENU_CLOSE_HOVER = loadImages("images/buttons/btnMenuClose_Hovered.png");
+        RESET_SCORES = loadImages("images/buttons/btnResetScores.png");
+        RESET_SCORES_HOVER = loadImages("images/buttons/btnResetScores_Hovered.png");
+        EXPORT_SCORES = loadImages("images/buttons/btnExportScores.png");
+        EXPORT_SCORES_HOVER = loadImages("images/buttons/btnExportScores_Hovered.png");
+
 
         //Play Buttons
         START = loadImages("images/buttons/btnStart.png");
