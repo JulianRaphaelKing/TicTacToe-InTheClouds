@@ -39,6 +39,7 @@ public class TicTacToeApp extends Application {
     private static Label xWinsText = new Label("0");
     private static Label oWinsText = new Label("0");
     private static Stage menuStage;
+    private Button[][] gridButtons = new Button[3][3];
 
     public static void main(String[] args) {
         launch(args);
@@ -252,6 +253,7 @@ public class TicTacToeApp extends Application {
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
                 Button gridBtn = new Button();
+                gridButtons[i][j] = gridBtn;
                 gridBtn.setMinSize(155, 155);
                 gridBtn.setStyle("-fx-background-color: transparent; -fx-padding: 0");
                 int row = i;
@@ -262,7 +264,12 @@ public class TicTacToeApp extends Application {
                     if(!isClicked[row][col]) {
                         turns(row, col, gridBtn, currentPlayer, board, stage);
                         currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
+
+                        if (currentPlayer == 'O') {
+                            makeCreatorAIMove(board, stage);
+                        }
                     }
+
 
                 });
 
@@ -290,6 +297,61 @@ public class TicTacToeApp extends Application {
         gameLayering.getChildren().addAll(bkgCloud, lines, grid);
         return gameLayering;
     }
+
+    private void makeCreatorAIMove(int[][] board, Stage stage) {
+        int[] move = getCreatorAIMove(board);
+        if (move != null) {
+            int row = move[0];
+            int col = move[1];
+            Button aiBtn = gridButtons[row][col];
+            turns(row, col, aiBtn, 'O', board, stage);
+            currentPlayer = 'X';
+        }
+    }
+
+    private int[] getCreatorAIMove(int[][] board) {
+        // Try to win
+        int[] winMove = findBestMove(board, 1); // 1 = O
+        if (winMove != null) return winMove;
+
+        // Try to block X
+        int[] blockMove = findBestMove(board, 0); // 0 = X
+        if (blockMove != null) return blockMove;
+
+        // Try center
+        if (board[1][1] == -1) return new int[]{1, 1};
+
+        // Try corners
+        int[][] corners = {{0,0}, {0,2}, {2,0}, {2,2}};
+        for (int[] pos : corners) {
+            if (board[pos[0]][pos[1]] == -1) return pos;
+        }
+
+        // Try sides
+        int[][] sides = {{0,1}, {1,0}, {1,2}, {2,1}};
+        for (int[] pos : sides) {
+            if (board[pos[0]][pos[1]] == -1) return pos;
+        }
+
+        return null;
+    }
+
+    private int[] findBestMove(int[][] board, int player) {
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                if (board[row][col] == -1) {
+                    board[row][col] = player;
+                    if (checkWin(row, col, player == 0 ? 'X' : 'O', board)) {
+                        board[row][col] = -1;
+                        return new int[]{row, col};
+                    }
+                    board[row][col] = -1;
+                }
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Updates the game state based on the current player's move, and checks for a winning condition.
