@@ -41,6 +41,8 @@ public class TicTacToeApp extends Application {
     private static Stage menuStage;
     private MediaPlayer bgmPlayer;
     private MediaPlayer fastBgmPlayer;
+    // Sound State
+    private BooleanProperty isMuted = new SimpleBooleanProperty(false);
 
 
     public static void main(String[] args) {
@@ -58,11 +60,11 @@ public class TicTacToeApp extends Application {
         bgmPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
         bgmPlayer.play();
 
-        String fastBgmPath = getClass().getResource("/images/bkgMusic.wav").toExternalForm();
+        String fastBgmPath = getClass().getResource("/images/bkgMusicSpeed.wav").toExternalForm();
         Media fastBgm = new Media(fastBgmPath);
-        bgmPlayer = new MediaPlayer(fastBgm);
-        bgmPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
-        bgmPlayer.stop();
+        fastBgmPlayer = new MediaPlayer(fastBgm);
+        fastBgmPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
+        fastBgmPlayer.stop();
 
         // Set scene to main screen
         Scene scene = new Scene(getMainPane(primaryStage), 675, 800);
@@ -94,8 +96,6 @@ public class TicTacToeApp extends Application {
      * @return a StackPane containing the complete layout for the main application screen
      */
     public Pane getMainPane(Stage primaryStage) {
-        // Sound State
-        BooleanProperty isMuted = new SimpleBooleanProperty(false);
 
         // Background Image
         ImageView background = new ImageView(FileAssets.BACKGROUND);
@@ -136,8 +136,15 @@ public class TicTacToeApp extends Application {
         btnMute.setOnMouseExited(e -> btnMute.setGraphic(new ImageView(isMuted.get() ? FileAssets.MUTE_HOVER : FileAssets.MUTE)));
 
         // Sync icon when mute state changes
-        isMuted.addListener((observable, oldValue, newValue) ->
-                btnMute.setGraphic(new ImageView(newValue ? FileAssets.MUTE_HOVER : FileAssets.MUTE)));
+        isMuted.addListener((observable, oldValue, newValue) -> {
+            btnMute.setGraphic(new ImageView(newValue ? FileAssets.MUTE_HOVER : FileAssets.MUTE));
+            if(isMuted.get()) {
+                bgmPlayer.stop();
+            } else {
+                bgmPlayer.play();
+            }
+                });
+
 
         // Add buttons to the top bar
         topBar.getChildren().addAll(btnMute, btnMin, btnClose);
@@ -186,13 +193,18 @@ public class TicTacToeApp extends Application {
             if(isStartHovered.get()) {
                 clouds.setImage(FileAssets.BACKGROUND_CLOUDS_HOVER);
                 btnStart.setGraphic(new ImageView(FileAssets.START_HOVER));
-                bgmPlayer.stop();
-                fastBgmPlayer.play();
+                if(!isMuted.get()) {
+                    bgmPlayer.stop();
+                    fastBgmPlayer.play();
+                }
+
             } else {
                 clouds.setImage(FileAssets.BACKGROUND_CLOUDS);
                 btnStart.setGraphic(new ImageView(FileAssets.START));
-                bgmPlayer.play();
-                fastBgmPlayer.stop();
+                if(!isMuted.get()) {
+                    fastBgmPlayer.stop();
+                    bgmPlayer.play();
+                }
             }
         });
 
