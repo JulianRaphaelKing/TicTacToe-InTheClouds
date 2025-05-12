@@ -18,7 +18,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import javafx.scene.media.Media;
@@ -36,6 +38,7 @@ public class TicTacToeApp extends Application {
     private Boolean preview = false;
     private char currentPlayer = 'X';
     private boolean[][] isClicked = new boolean[3][3];
+    private Button[][] gridButtons = new Button[3][3];
     private static int xWinCount = 0;
     private static int oWinCount = 0;
     private static Label xWinsText = new Label("0");
@@ -277,13 +280,16 @@ public class TicTacToeApp extends Application {
                 int row = i;
                 int col = j;
 
+                gridButtons[i][j] = gridBtn;
+
                 // When grid button is clicked, call turns method
                 gridBtn.setOnAction(e -> {
                     if(!isClicked[row][col]) {
                         turns(row, col, gridBtn, currentPlayer, board, stage);
+                        // If X just went and the VS Computer mode is on, call the computer's turn
                         if(vsComputer.get() && currentPlayer == 'X') {
                             makeCreatorAIMove(board, stage);
-                        } else if (!vsComputer.get()) {
+                        } else if (!vsComputer.get()) { // else change to O's turn
                             currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
                         }
                     }
@@ -340,6 +346,144 @@ public class TicTacToeApp extends Application {
         } else if (isBoardFull(board)) {
             mainPane.setCenter(getTiePane(stage));
         }
+    }
+
+    /**
+     * Finds and returns a random empty spot on the board.
+     * If no spots are available, returns null.
+     *
+     * @param board the current game board
+     * @return an array with the row and column of the random move, or null if board is full
+     */
+    private int[] getRandomMove(int[][] board) {
+        // Create a list to store all empty positions
+        List<int[]> available = new ArrayList<>();
+
+        // Check every cell on the board
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                // If the spot is empty
+                if (board[row][col] == -1) {
+                    // Add this position to the list
+                    available.add(new int[]{row, col});
+                }
+            }
+        }
+        // If there are no empty spots, return null
+        if (available.isEmpty()) return null;
+
+        // Pick a random index from the list
+        int randomIndex = (int) (Math.random() * available.size());
+
+        // Return the random position
+        return available.get(randomIndex);
+    }
+
+    /**
+     * Executes the computer move for Player O
+     * This method retrieves the computer's chosen move,
+     * using the same strategyI personally use when playing tic-tac-toe.
+     *
+     * It performs the move on the board, updates the UI button,
+     * and switches the turn back to Player X.
+     *
+     * @param board the current game board state as a 2D integer array
+     * @param stage the current stage
+     */
+    private void makeCreatorAIMove(int[][] board, Stage stage) {
+        // Get the move from the strategy
+        int[] move = getCreatorAIMove(board);
+        if (move != null) {
+            int row = move[0];
+            int col = move[1];
+            Button aiBtn = gridButtons[row][col];
+
+            // Preform the move
+            turns(row, col, aiBtn, 'O', board, stage);
+
+            // Switch back to player X
+            currentPlayer = 'X';
+        }
+    }
+
+    /**
+     * Determines the best move for the computer based on my personal strategy, for a human like effect.
+     * Random numbers are added to add human like flaws.
+     *
+     * The strategy prioritizes winning, blocking, then positioning
+     * (center, corners, sides), with random chances that some steps will be skipped.
+     *
+     * @param board the current game board state as a 2D integer array
+     * @return an array with the row and column of the chosen move, or null if no moves can be made
+     */
+    private int[] getCreatorAIMove(int[][] board) {
+
+        if (Math.random() < 0.10) {
+            return getRandomMove(board);
+        }
+
+        // Check if computer can win (85% chance)
+        if(Math.random() < 0.85) {
+            int[] winMove = findBestMove(board, 1); // 1 = O
+            if (winMove != null) return winMove;
+        }
+
+        // Block X if they can win next turn (80% chance)
+        if(Math.random() < 0.80) {
+            int[] blockMove = findBestMove(board, 0); // 0 = X
+            if (blockMove != null) return blockMove;
+        }
+
+
+        // Take the center if it is available (70% chance)
+        if(Math.random() < 0.7) {
+            if (board[1][1] == -1) return new int[]{1, 1};
+        }
+
+
+        // Try to take corners
+        int[][] corners = {{0,0}, {0,2}, {2,0}, {2,2}};
+        for (int[] position : corners) {
+            if (board[position[0]][position[1]] == -1) return position;
+        }
+
+        // Take sides if there is nothing else
+        int[][] sides = {{0,1}, {1,0}, {1,2}, {2,1}};
+        for (int[] position : sides) {
+            if (board[position[0]][position[1]] == -1) return position;
+        }
+
+        // No moves are left
+        return null;
+    }
+
+    /**
+     * Checks the board to see if a player can win in the next turn.
+     * Places the player's symbol in each empty cell and checks for a win.
+     *
+     * @param board the current game board state as a 2D integer array
+     * @param player the player to check (0 for 'X', 1 for 'O')
+     * @return an array with the winning move's row and column, or null if no winning move found
+     */
+    private int[] findBestMove(int[][] board, int player) {
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                if (board[row][col] == -1) {
+                    // Simulate move
+                    board[row][col] = player;
+                    // Check if this move wins the game
+                    if (checkWin(row, col, player == 0 ? 'X' : 'O', board)) {
+                        // Undo simulation
+                        board[row][col] = -1;
+                        return new int[]{row, col};
+                    }
+                    // Undo move if not winning
+                    board[row][col] = -1;
+                }
+            }
+        }
+        // No winning move found
+        return null;
     }
 
     /**
