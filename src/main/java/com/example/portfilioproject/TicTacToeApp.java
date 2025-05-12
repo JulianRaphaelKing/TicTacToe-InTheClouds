@@ -43,7 +43,7 @@ public class TicTacToeApp extends Application {
     private static Stage menuStage;
     private MediaPlayer bgmPlayer;
     private MediaPlayer fastBgmPlayer;
-
+    private static BooleanProperty vsComputer = new SimpleBooleanProperty(false); // Game Mode State
     private BooleanProperty isMuted = new SimpleBooleanProperty(false); // Sound State
 
 
@@ -281,9 +281,12 @@ public class TicTacToeApp extends Application {
                 gridBtn.setOnAction(e -> {
                     if(!isClicked[row][col]) {
                         turns(row, col, gridBtn, currentPlayer, board, stage);
-                        currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
+                        if(vsComputer.get() && currentPlayer == 'X') {
+                            makeCreatorAIMove(board, stage);
+                        } else if (!vsComputer.get()) {
+                            currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
+                        }
                     }
-
                 });
 
                 // Preview move on hover
@@ -310,6 +313,8 @@ public class TicTacToeApp extends Application {
         gameLayering.getChildren().addAll(bkgCloud, lines, grid);
         return gameLayering;
     }
+
+
 
     /**
      * Updates the game state based on the current player's move, and checks for a winning condition.
@@ -475,7 +480,7 @@ public class TicTacToeApp extends Application {
         menuStage = new Stage();
         menuStage.initStyle(StageStyle.UNDECORATED);
         menuStage.initOwner(stage);
-        menuStage.setHeight(395);
+        menuStage.setHeight(445);
         menuStage.setWidth(265);
         menuStage.setResizable(false);
 
@@ -509,11 +514,6 @@ public class TicTacToeApp extends Application {
             menuStage.setY(e.getScreenY());
         });
 
-        // Create spacer to push the buttons down and to monitor spacing
-        Region spacerBetweenIconAndScores = new Region();
-        spacerBetweenIconAndScores.setPrefHeight(30);
-        Region spacerBelowScoreBoxes = new Region();
-        VBox.setVgrow(spacerBelowScoreBoxes, Priority.ALWAYS);
 
         // Create Labels for X and O win counts
         xWinsText.setStyle("-fx-font-size: 32px; -fx-text-fill: #5a5a66;");
@@ -557,6 +557,30 @@ public class TicTacToeApp extends Application {
         // Action effect - call method to export the scores to a txt file
         btnExportScores.setOnAction(e -> exportScoresToFile());
 
+        // Create Change Mode Button
+        Button btnChangeMode = new Button();
+        btnChangeMode.setGraphic(new ImageView(FileAssets.PLAYER_VERSUS_PLAYER)); // Default Mode (player vs player)
+        btnChangeMode.setStyle("-fx-background-color: transparent;");
+
+        // Sync icon whenever state changes
+        vsComputer.addListener((observable, oldValue, newValue) -> {
+            btnChangeMode.setGraphic(new ImageView(newValue ? FileAssets.VERSUS_COMPUTER : FileAssets.PLAYER_VERSUS_PLAYER));
+        });
+
+        // Button hover actions - change to the opposite of the curr state
+        btnChangeMode.setOnMouseEntered(e -> {
+            btnChangeMode.setGraphic(new ImageView(vsComputer.get() ? FileAssets.PLAYER_VERSUS_PLAYER : FileAssets.VERSUS_COMPUTER));
+        });
+        btnChangeMode.setOnMouseExited(e -> {
+            btnChangeMode.setGraphic(new ImageView(vsComputer.get() ? FileAssets.VERSUS_COMPUTER : FileAssets.PLAYER_VERSUS_PLAYER));
+        });
+
+        // Switch the mode when clicked
+        btnChangeMode.setOnAction(e -> {
+            vsComputer.set(!vsComputer.get());
+            System.out.println("Mode Switched: " + (vsComputer.get() ? "Player VS Computer" : "Player VS Player"));
+        });
+
         // Create Menu Close Button
         Button btnMenuClose = new Button();
         btnMenuClose.setGraphic(new ImageView(FileAssets.MENU_CLOSE));
@@ -575,29 +599,30 @@ public class TicTacToeApp extends Application {
         topBar.setAlignment(Pos.TOP_RIGHT);
         topBar.getChildren().add(btnMenuClose);
 
-        // Create VBox to hold the bottom buttons
-        VBox buttonBox = new VBox(20);
-        buttonBox.setPadding(new Insets(0, 0, -20, 0));
-        buttonBox.setAlignment(Pos.BOTTOM_CENTER);
-        buttonBox.getChildren().addAll(btnResetScores, btnExportScores);
+
 
         // Create VBox to hold the layout
         VBox menuLayout = new VBox(20);
         menuLayout.setAlignment(Pos.TOP_CENTER);
-        menuLayout.setPadding(new Insets(0, 40, 40, 40));
+        menuLayout.setPadding(new Insets(0, 40, 0, 40));
+        menuLayout.getChildren().add(topBar);
 
-        // Add all the created buttons to the layout VBox
-        menuLayout.getChildren().addAll(
-                topBar,
-                spacerBetweenIconAndScores,
-                spacerBelowScoreBoxes,
-                buttonBox
-        );
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+
+        // Create VBox to hold the bottom buttons
+        VBox buttonBox = new VBox(10);
+        buttonBox.setPadding(new Insets(0, 0, 20, 0));
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.getChildren().addAll(btnResetScores, btnExportScores, btnChangeMode);
+        //StackPane.setAlignment(buttonBox, Pos.BOTTOM_CENTER);
+
+        menuLayout.getChildren().addAll(spacer, buttonBox);
 
         // Add the background, score labels, and menu layout to the Stack Pane
         menuStack.getChildren().addAll(MenuBackground, labelLayer, menuLayout);
 
-        Scene menuScene = new Scene(menuStack, 265, 395);
+        Scene menuScene = new Scene(menuStack, 265, 445);
         menuStage.setScene(menuScene);
         menuStage.show();
     }

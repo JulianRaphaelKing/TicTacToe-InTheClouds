@@ -27,6 +27,8 @@ public class FileAssets  {
     public static Image RESET_SCORES_HOVER;
     public static Image EXPORT_SCORES;
     public static Image EXPORT_SCORES_HOVER;
+    public static Image VERSUS_COMPUTER;
+    public static Image PLAYER_VERSUS_PLAYER;
 
     //Play Buttons
     public static Image START;
@@ -88,6 +90,8 @@ public class FileAssets  {
         RESET_SCORES_HOVER = loadImages("images/buttons/btnResetScores_Hovered.png");
         EXPORT_SCORES = loadImages("images/buttons/btnExportScores.png");
         EXPORT_SCORES_HOVER = loadImages("images/buttons/btnExportScores_Hovered.png");
+        VERSUS_COMPUTER = loadImages("images/buttons/btnVSComputer.png");
+        PLAYER_VERSUS_PLAYER = loadImages("images/buttons/btnPlayerVSPlayer.png");
 
 
         //Play Buttons
