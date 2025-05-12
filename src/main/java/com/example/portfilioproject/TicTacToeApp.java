@@ -18,16 +18,18 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Objects;
 
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
 /**
  * Main point for the Tic-Tac-Toe application.
- * This class handles the application lifecycle, UI setup, and game logic orchestration.
+ * This class handles the application, UI setup, and game logic.
  */
-public class TicTacToeApp extends Application {
 
+public class TicTacToeApp extends Application {
 
     // Main UI components and state trackers
     private BorderPane mainPane;
@@ -55,14 +57,14 @@ public class TicTacToeApp extends Application {
         FileAssets.loadFiles();
 
         // Load regular music
-        String bgmPath = getClass().getResource("/images/bkgMusic.wav").toExternalForm();
+        String bgmPath = Objects.requireNonNull(getClass().getResource("/images/bkgMusic.wav")).toExternalForm();
         Media bgm = new Media(bgmPath);
         bgmPlayer = new MediaPlayer(bgm);
         bgmPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         bgmPlayer.play();
 
         // Load fast music
-        String fastBgmPath = getClass().getResource("/images/bkgMusicSpeed.wav").toExternalForm();
+        String fastBgmPath = Objects.requireNonNull(getClass().getResource("/images/bkgMusicSpeed.wav")).toExternalForm();
         Media fastBgm = new Media(fastBgmPath);
         fastBgmPlayer = new MediaPlayer(fastBgm);
         fastBgmPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
@@ -125,7 +127,10 @@ public class TicTacToeApp extends Application {
         Button btnMin = new Button();
         btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE));
         btnMin.setStyle("-fx-background-color: transparent; -fx-padding: 0");
-        btnMin.setOnAction(e -> primaryStage.setIconified(true));
+        btnMin.setOnAction(e -> {
+            primaryStage.setIconified(true);
+            isMuted.set(true);
+        });
         btnMin.setOnMouseEntered(e -> btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE_HOVER)));
         btnMin.setOnMouseExited(e -> btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE)));
 
@@ -164,8 +169,7 @@ public class TicTacToeApp extends Application {
         // Assemble main layout
         mainPane.setTop(topBar);
         mainPane.setCenter(getTitlePane(primaryStage));
-        StackPane paneLayering = new StackPane(background, mainPane);
-        return paneLayering;
+        return new StackPane(background, mainPane);
     }
 
 
@@ -224,7 +228,9 @@ public class TicTacToeApp extends Application {
         btnMenu.setOnMouseExited(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU));});
 
         // When menu button is clicked, open the menu stage
-        btnMenu.setOnAction(e -> {getMenu(stage);});
+        btnMenu.setOnAction(e -> {
+            getMenu(stage);
+        });
 
         // VBox to hold the start button in the center
         VBox centerContent = new VBox(btnStart);
@@ -251,7 +257,7 @@ public class TicTacToeApp extends Application {
      * @return a StackPane containing the game board elements, including the grid and background
      */
     private Pane getGamePane(Stage stage) {
-        int board[][] = resetBoard();
+        int[][] board = resetBoard();
         currentPlayer = 'X';
 
         // Create grid to host buttons
@@ -449,7 +455,13 @@ public class TicTacToeApp extends Application {
 
     }
 
+    /**
+     * Creates a menu stage consisting of a score tacker, an option to reset the current score,
+     * and an option to export your scores to a txt file along with the current date and time.
+     */
     public static void getMenu(Stage stage) {
+
+        // Ensure that there is only one menu stage
         if (menuStage != null && menuStage.isShowing()) {
             menuStage.toFront();
             return;
@@ -459,6 +471,7 @@ public class TicTacToeApp extends Application {
             return;
         }
 
+        // Set Menu Stage
         menuStage = new Stage();
         menuStage.initStyle(StageStyle.UNDECORATED);
         menuStage.initOwner(stage);
@@ -466,12 +479,10 @@ public class TicTacToeApp extends Application {
         menuStage.setWidth(265);
         menuStage.setResizable(false);
 
-        StackPane menuStack = new StackPane();
-        double offset = 20;
-        menuStage.setX(stage.getX() - menuStage.getWidth() - offset);
+        // Make the menu stage to the left of the main stage
+        menuStage.setX(stage.getX() - menuStage.getWidth() - 20);
         menuStage.setY(stage.getY());
-
-        // Make it follow the main stage when moved
+        // Follow when the main stage is moved
         stage.xProperty().addListener((obs, oldVal, newVal) -> {
             menuStage.setX(newVal.doubleValue() - menuStage.getWidth() - 20);
         });
@@ -479,10 +490,16 @@ public class TicTacToeApp extends Application {
             menuStage.setY(newVal.doubleValue());
         });
 
+
+        // Create Stack Pane to hold the elements
+        StackPane menuStack = new StackPane();
+
+        // Create the background
         ImageView MenuBackground = new ImageView(FileAssets.MENU_BKG);
         MenuBackground.setFitHeight(menuStage.getHeight());
         MenuBackground.setFitWidth(menuStage.getWidth());
-        //make screen draggable only at the top
+
+        // Make the screen draggable
         menuStack.setOnMousePressed(e -> {
             menuStage.setX(e.getScreenX());
             menuStage.setY(e.getScreenY());
@@ -492,14 +509,9 @@ public class TicTacToeApp extends Application {
             menuStage.setY(e.getScreenY());
         });
 
-        VBox menuLayout = new VBox(20);
-        menuLayout.setAlignment(Pos.TOP_CENTER);
-        menuLayout.setPadding(new Insets(0, 40, 40, 40));
-
-        // --- SPACER TO PUSH DOWN SCORE BUTTONS ---
+        // Create spacer to push the buttons down and to monitor spacing
         Region spacerBetweenIconAndScores = new Region();
         spacerBetweenIconAndScores.setPrefHeight(30);
-
         Region spacerBelowScoreBoxes = new Region();
         VBox.setVgrow(spacerBelowScoreBoxes, Priority.ALWAYS);
 
@@ -512,16 +524,20 @@ public class TicTacToeApp extends Application {
         oWinsText.setLayoutX(186);
         oWinsText.setLayoutY(178);
 
-    // Add these to a Pane (which allows absolute positioning)
+        // Add score labels to pane
         Pane labelLayer = new Pane();
         labelLayer.getChildren().addAll(xWinsText, oWinsText);
 
-        // Buttons
+        // Create Reset Scores Button
         Button btnResetScores = new Button();
         btnResetScores.setGraphic(new ImageView(FileAssets.RESET_SCORES));
         btnResetScores.setStyle("-fx-background-color: transparent;");
+
+        // Hover effects
         btnResetScores.setOnMouseEntered(mouseEvent -> {btnResetScores.setGraphic(new ImageView(FileAssets.RESET_SCORES_HOVER));});
         btnResetScores.setOnMouseExited(mouseEvent -> {btnResetScores.setGraphic(new ImageView(FileAssets.RESET_SCORES));});
+
+        // Action effect - clear the scores
         btnResetScores.setOnAction(e -> {
             xWinCount = 0;
             oWinCount = 0;
@@ -529,33 +545,48 @@ public class TicTacToeApp extends Application {
             oWinsText.setText("0");
         });
 
+        // Create Export Scores Button
         Button btnExportScores = new Button();
         btnExportScores.setGraphic(new ImageView(FileAssets.EXPORT_SCORES));
         btnExportScores.setStyle("-fx-background-color: transparent;");
+
+        // Hover effects
         btnExportScores.setOnMouseEntered(mouseEvent -> btnExportScores.setGraphic(new ImageView(FileAssets.EXPORT_SCORES_HOVER)));
         btnExportScores.setOnMouseExited(mouseEvent -> btnExportScores.setGraphic(new ImageView(FileAssets.EXPORT_SCORES)));
+
+        // Action effect - call method to export the scores to a txt file
         btnExportScores.setOnAction(e -> exportScoresToFile());
 
+        // Create Menu Close Button
         Button btnMenuClose = new Button();
         btnMenuClose.setGraphic(new ImageView(FileAssets.MENU_CLOSE));
         btnMenuClose.setStyle("-fx-background-color: transparent;");
+
+        // Hover effects
         btnMenuClose.setOnMouseEntered(mouseEvent -> btnMenuClose.setGraphic(new ImageView(FileAssets.MENU_CLOSE_HOVER)));
         btnMenuClose.setOnMouseExited(mouseEvent -> btnMenuClose.setGraphic(new ImageView(FileAssets.MENU_CLOSE)));
+
+        // Action effect - hide the menu
         btnMenuClose.setOnAction(e -> menuStage.hide());
 
+        // Create HBox for the top bar to hold the menu close button
         HBox topBar = new HBox();
         topBar.setPadding(new Insets(20, 20, 0, 20));
         topBar.setAlignment(Pos.TOP_RIGHT);
         topBar.getChildren().add(btnMenuClose);
 
+        // Create VBox to hold the bottom buttons
         VBox buttonBox = new VBox(20);
         buttonBox.setPadding(new Insets(0, 0, -20, 0));
         buttonBox.setAlignment(Pos.BOTTOM_CENTER);
         buttonBox.getChildren().addAll(btnResetScores, btnExportScores);
 
+        // Create VBox to hold the layout
+        VBox menuLayout = new VBox(20);
+        menuLayout.setAlignment(Pos.TOP_CENTER);
+        menuLayout.setPadding(new Insets(0, 40, 40, 40));
 
-
-
+        // Add all the created buttons to the layout VBox
         menuLayout.getChildren().addAll(
                 topBar,
                 spacerBetweenIconAndScores,
@@ -563,11 +594,17 @@ public class TicTacToeApp extends Application {
                 buttonBox
         );
 
+        // Add the background, score labels, and menu layout to the Stack Pane
         menuStack.getChildren().addAll(MenuBackground, labelLayer, menuLayout);
-        Scene menuScene = new Scene(menuStack, 265, 395); // use same dimensions
+
+        Scene menuScene = new Scene(menuStack, 265, 395);
         menuStage.setScene(menuScene);
         menuStage.show();
     }
+
+    /**
+     * Creates / appends a txt file (scores_log.txt) with the current scores along with the current date and time
+     */
 
     private static void exportScoresToFile() {
         String fileName = "scores_log.txt";
@@ -587,6 +624,12 @@ public class TicTacToeApp extends Application {
         }
     }
 
+    /**
+     * Checks whether the board is full or not.
+     *
+     * @param board the integer 2D array that you are checking
+     * @return true if the board is full, otherwise false
+     */
     private boolean isBoardFull(int[][] board) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -611,10 +654,8 @@ public class TicTacToeApp extends Application {
      */
     private void restartIsClicked() {
     //reset isClicked values
-        for(int i=0; i<isClicked.length; i++) {
-            for(int j=0; j<isClicked[i].length; j++) {
-                isClicked[i][j] = false;
-            }
+        for (boolean[] booleans : isClicked) {
+            Arrays.fill(booleans, false);
         }
     }
 
@@ -628,12 +669,11 @@ public class TicTacToeApp extends Application {
      * @return a 3x3 integer array initialized to -1, representing an empty Tic-Tac-Toe board
      */
     private int[][] resetBoard() {
-        int[][] board = {
+        return new int[][]{
                 {-1, -1, -1},
                 {-1, -1, -1},
                 {-1, -1, -1}
         };
-        return board;
     }
 
 }
