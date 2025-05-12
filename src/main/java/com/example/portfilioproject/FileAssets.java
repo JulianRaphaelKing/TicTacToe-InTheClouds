@@ -53,10 +53,6 @@ public class FileAssets  {
     public static Image PLR_X_MSG;
     public static Image DRAW_MSG;
 
-    //Music
-    public static Media BKG_MUSIC;
-    public static Media FAST_BKG_MUSIC;
-
 
     /**
      * Loads all the required image assets into their respective static fields.
@@ -118,11 +114,6 @@ public class FileAssets  {
         PLR_O_MSG = loadImages("images/texts/plrOMsg.png");
         PLR_X_MSG = loadImages("images/texts/plrXMsg.png");
         DRAW_MSG = loadImages("images/texts/drawMsg.png");
-
-////        //Music
-//        BKG_MUSIC = loadMedia("images/buttons/bkgMusic.wav");
-//        FAST_BKG_MUSIC = loadMedia("images/buttons/bkgMusicSpeed.wav");
-
     }
 
     /**
@@ -135,11 +126,4 @@ public class FileAssets  {
     public static Image loadImages(String path) {
         return new Image(Objects.requireNonNull(FileAssets.class.getResourceAsStream("/" + path)));
     }
-//
-//    public static Media loadMedia(String filePath) {
-//        // Using getClass().getResource() to access files from the resources folder
-//        return new Media(Objects.requireNonNull(FileAssets.class.getResourceAsStream("/"+filePath).toString()));
-//    }
-
-
 }

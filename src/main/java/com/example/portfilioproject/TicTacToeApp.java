@@ -41,8 +41,8 @@ public class TicTacToeApp extends Application {
     private static Stage menuStage;
     private MediaPlayer bgmPlayer;
     private MediaPlayer fastBgmPlayer;
-    // Sound State
-    private BooleanProperty isMuted = new SimpleBooleanProperty(false);
+
+    private BooleanProperty isMuted = new SimpleBooleanProperty(false); // Sound State
 
 
     public static void main(String[] args) {
@@ -54,12 +54,14 @@ public class TicTacToeApp extends Application {
         // Load required assets at startup
         FileAssets.loadFiles();
 
+        // Load regular music
         String bgmPath = getClass().getResource("/images/bkgMusic.wav").toExternalForm();
         Media bgm = new Media(bgmPath);
         bgmPlayer = new MediaPlayer(bgm);
-        bgmPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
+        bgmPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         bgmPlayer.play();
 
+        // Load fast music
         String fastBgmPath = getClass().getResource("/images/bkgMusicSpeed.wav").toExternalForm();
         Media fastBgm = new Media(fastBgmPath);
         fastBgmPlayer = new MediaPlayer(fastBgm);
@@ -135,7 +137,7 @@ public class TicTacToeApp extends Application {
         btnMute.setOnMouseEntered(e -> btnMute.setGraphic(new ImageView(isMuted.get() ? FileAssets.MUTE : FileAssets.MUTE_HOVER)));
         btnMute.setOnMouseExited(e -> btnMute.setGraphic(new ImageView(isMuted.get() ? FileAssets.MUTE_HOVER : FileAssets.MUTE)));
 
-        // Sync icon when mute state changes
+        // Sync icon and music when mute state changes
         isMuted.addListener((observable, oldValue, newValue) -> {
             btnMute.setGraphic(new ImageView(newValue ? FileAssets.MUTE_HOVER : FileAssets.MUTE));
             if(isMuted.get()) {
@@ -143,7 +145,7 @@ public class TicTacToeApp extends Application {
             } else {
                 bgmPlayer.play();
             }
-                });
+        });
 
 
         // Add buttons to the top bar
@@ -187,7 +189,7 @@ public class TicTacToeApp extends Application {
         btnMenu.setGraphic(new ImageView(FileAssets.MENU));
         btnMenu.setStyle("-fx-background-color: transparent; -fx-padding: 0");
 
-        // Start button hover effects (including background transition)
+        // Start button hover effects (including background transition and music change)
         BooleanProperty isStartHovered = new SimpleBooleanProperty(false);
         isStartHovered.addListener((observable, oldValue, newValue) -> {
             if(isStartHovered.get()) {
@@ -355,13 +357,18 @@ public class TicTacToeApp extends Application {
                 (board[0][1] == player && board[1][1] == player && board[2][1] == player) ||
                 (board[0][2] == player && board[1][2] == player && board[2][2] == player);
     }
-    private Pane getTiePane(Stage stage) {
-        StackPane winnerLayer = new StackPane();
 
-        ImageView bkgDay = new ImageView(FileAssets.BKG_DRAW);
-
-        ImageView winner = new ImageView(FileAssets.DRAW_MSG);
-
+    /**
+     * Creates a pane that contains the winner background, message, and restart button.
+     * This method takes the arguments and displays them on a Stack Pane corresponding with who won.
+     *
+     * @param stage the stage that we are currently on
+     * @param background the background image associated with the winner
+     * @param winnerMessage the text image with the appropriate text displaying the winner
+     * @return the stack pane
+     */
+    private Pane getWinnerPane(Stage stage, ImageView background, ImageView winnerMessage) {
+        // Create restart button
         Button restart = new Button();
         restart.setGraphic(new ImageView(FileAssets.RESTART));
         restart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
@@ -369,21 +376,31 @@ public class TicTacToeApp extends Application {
             restartIsClicked();
             mainPane.setCenter(getTitlePane(stage));
         });
-        restart.setOnMouseEntered(mouseEvent -> {
-            restart.setGraphic(new ImageView(FileAssets.RESTART_HOVER));
-        });
-        restart.setOnMouseExited(mouseEvent -> {
-            restart.setGraphic(new ImageView(FileAssets.RESTART));
-        });
 
+        // Restart Button Hover effects
+        restart.setOnMouseEntered(mouseEvent -> {restart.setGraphic(new ImageView(FileAssets.RESTART_HOVER));});
+        restart.setOnMouseExited(mouseEvent -> {restart.setGraphic(new ImageView(FileAssets.RESTART));});
+
+        // VBox to hold the winner message and restart button
         VBox messageContainer = new VBox();
         messageContainer.setAlignment(Pos.CENTER);
         messageContainer.setSpacing(25);
-        messageContainer.getChildren().addAll(winner, restart);
+        messageContainer.getChildren().addAll(winnerMessage, restart);
 
-        winnerLayer.getChildren().addAll(bkgDay, messageContainer);
+        // Stack Pane to hold all elements
+        StackPane winnerLayer = new StackPane();
+        winnerLayer.getChildren().addAll(background, messageContainer);
 
         return winnerLayer;
+    }
+
+    private Pane getTiePane(Stage stage) {
+        // Create background and winner message
+        ImageView bkgReg = new ImageView(FileAssets.BKG_DRAW);
+        ImageView winner = new ImageView(FileAssets.DRAW_MSG);
+
+        // Get the winner pane with the appropriate message
+        return getWinnerPane(stage, bkgReg, winner);
     }
 
     /**
@@ -397,36 +414,16 @@ public class TicTacToeApp extends Application {
      * @return a StackPane containing the "X Wins" screen layout, including background, message, and restart button
      */
     private Pane getXWinsPane(Stage stage) {
+        // Give player X a point
         xWinCount++;
         xWinsText.setText(String.valueOf(xWinCount));
-        StackPane winnerLayer = new StackPane();
 
+        // Create background and winner message
         ImageView bkgDay = new ImageView(FileAssets.BKG_DAY);
-
         ImageView winner = new ImageView(FileAssets.PLR_X_MSG);
 
-        Button restart = new Button();
-        restart.setGraphic(new ImageView(FileAssets.RESTART));
-        restart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
-        restart.setOnAction(e -> {
-            restartIsClicked();
-            mainPane.setCenter(getTitlePane(stage));
-        });
-        restart.setOnMouseEntered(mouseEvent -> {
-            restart.setGraphic(new ImageView(FileAssets.RESTART_HOVER));
-        });
-        restart.setOnMouseExited(mouseEvent -> {
-            restart.setGraphic(new ImageView(FileAssets.RESTART));
-        });
-
-        VBox messageContainer = new VBox();
-        messageContainer.setAlignment(Pos.CENTER);
-        messageContainer.setSpacing(25);
-        messageContainer.getChildren().addAll(winner, restart);
-
-        winnerLayer.getChildren().addAll(bkgDay, messageContainer);
-
-        return winnerLayer;
+        // Get the winner pane with the appropriate message
+        return getWinnerPane(stage, bkgDay, winner);
     }
 
     /**
@@ -439,37 +436,17 @@ public class TicTacToeApp extends Application {
      * @return a StackPane containing the "O Wins" screen layout, including background, message, and restart button
      */
     private Pane getOWinsPane(Stage stage) {
+        // Give O a point
         oWinCount++;
         oWinsText.setText(String.valueOf(oWinCount));
 
-        StackPane winnerLayer = new StackPane();
-
+        // Create background and winner message
         ImageView bkgNight = new ImageView(FileAssets.BKG_NIGHT);
-
         ImageView winner = new ImageView(FileAssets.PLR_O_MSG);
 
-        Button restart = new Button();
-        restart.setGraphic(new ImageView(FileAssets.RESTART));
-        restart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
-        restart.setOnAction(e -> {
-            restartIsClicked();
-            mainPane.setCenter(getTitlePane(stage));
-        });
-        restart.setOnMouseEntered(mouseEvent -> {
-            restart.setGraphic(new ImageView(FileAssets.RESTART_HOVER));
-        });
-        restart.setOnMouseExited(mouseEvent -> {
-            restart.setGraphic(new ImageView(FileAssets.RESTART));
-        });
+        // Get the winner pane with the appropriate message
+        return getWinnerPane(stage, bkgNight, winner);
 
-        VBox messageContainer = new VBox();
-        messageContainer.setAlignment(Pos.CENTER);
-        messageContainer.setSpacing(25);
-        messageContainer.getChildren().addAll(winner, restart);
-
-        winnerLayer.getChildren().addAll(bkgNight, messageContainer);
-
-        return winnerLayer;
     }
 
     public static void getMenu(Stage stage) {
