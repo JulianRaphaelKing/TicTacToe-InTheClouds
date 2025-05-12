@@ -327,6 +327,8 @@ public class TicTacToeApp extends Application {
         board[row][col] = currentPlayer == 'X' ? 0 : 1;
         if(checkWin(row, col, currentPlayer, board)) {
             mainPane.setCenter(currentPlayer == 'X' ? getXWinsPane(stage) : getOWinsPane(stage));
+        } else if (isBoardFull(board)) {
+            mainPane.setCenter(getTiePane(stage));
         }
     }
 
@@ -384,6 +386,36 @@ public class TicTacToeApp extends Application {
             return true;
         }
         return false;
+    }
+    private Pane getTiePane(Stage stage) {
+        StackPane winnerLayer = new StackPane();
+
+        ImageView bkgDay = new ImageView(FileAssets.BKG_DRAW);
+
+        ImageView winner = new ImageView(FileAssets.DRAW_MSG);
+
+        Button restart = new Button();
+        restart.setGraphic(new ImageView(FileAssets.RESTART));
+        restart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+        restart.setOnAction(e -> {
+            restartIsClicked();
+            mainPane.setCenter(getTitlePane(stage));
+        });
+        restart.setOnMouseEntered(mouseEvent -> {
+            restart.setGraphic(new ImageView(FileAssets.RESTART_HOVER));
+        });
+        restart.setOnMouseExited(mouseEvent -> {
+            restart.setGraphic(new ImageView(FileAssets.RESTART));
+        });
+
+        VBox messageContainer = new VBox();
+        messageContainer.setAlignment(Pos.CENTER);
+        messageContainer.setSpacing(25);
+        messageContainer.getChildren().addAll(winner, restart);
+
+        winnerLayer.getChildren().addAll(bkgDay, messageContainer);
+
+        return winnerLayer;
     }
 
     /**
@@ -475,10 +507,10 @@ public class TicTacToeApp extends Application {
     public static void getMenu(Stage stage) {
         if (menuStage != null && menuStage.isShowing()) {
             menuStage.toFront();
-            return; // already open, do nothing
+            return;
         }
         if (menuStage != null && !menuStage.isShowing()) {
-            menuStage.show(); // was hidden → show it again
+            menuStage.show();
             return;
         }
 
@@ -489,8 +521,17 @@ public class TicTacToeApp extends Application {
         menuStage.setResizable(false);
 
         StackPane menuStack = new StackPane();
-        menuStage.setX(stage.getX() + 20);
-        menuStage.setY(stage.getY() + 50);
+        double offset = 20;
+        menuStage.setX(stage.getX() - menuStage.getWidth() - offset);
+        menuStage.setY(stage.getY());
+
+        // Make it follow the main stage when moved
+        stage.xProperty().addListener((obs, oldVal, newVal) -> {
+            menuStage.setX(newVal.doubleValue() - menuStage.getWidth() - 20);
+        });
+        stage.yProperty().addListener((obs, oldVal, newVal) -> {
+            menuStage.setY(newVal.doubleValue());
+        });
 
         ImageView MenuBackground = new ImageView(FileAssets.MENU_BKG);
         MenuBackground.setFitHeight(menuStage.getHeight());
@@ -511,19 +552,19 @@ public class TicTacToeApp extends Application {
 
         // --- SPACER TO PUSH DOWN SCORE BUTTONS ---
         Region spacerBetweenIconAndScores = new Region();
-        spacerBetweenIconAndScores.setPrefHeight(30); // add more space below ≡
+        spacerBetweenIconAndScores.setPrefHeight(30);
 
         Region spacerBelowScoreBoxes = new Region();
         VBox.setVgrow(spacerBelowScoreBoxes, Priority.ALWAYS);
 
         // Create Labels for X and O win counts
-        xWinsText.setStyle("-fx-font-size: 32px; -fx-text-fill: #5a5a66;"); // style to match background
-        xWinsText.setLayoutX(186); // tweak this based on image box
-        xWinsText.setLayoutY(111); // tweak this too
+        xWinsText.setStyle("-fx-font-size: 32px; -fx-text-fill: #5a5a66;");
+        xWinsText.setLayoutX(186);
+        xWinsText.setLayoutY(111);
 
         oWinsText.setStyle("-fx-font-size: 32px; -fx-text-fill: #5a5a66;");
-        oWinsText.setLayoutX(186); // same X, different Y
-        oWinsText.setLayoutY(178); // tweak as needed
+        oWinsText.setLayoutX(186);
+        oWinsText.setLayoutY(178);
 
     // Add these to a Pane (which allows absolute positioning)
         Pane labelLayer = new Pane();
@@ -557,12 +598,12 @@ public class TicTacToeApp extends Application {
         btnMenuClose.setOnAction(e -> menuStage.hide());
 
         HBox topBar = new HBox();
-        topBar.setPadding(new Insets(20, 20, 0, 20)); // Top, Right, Bottom, Left
+        topBar.setPadding(new Insets(20, 20, 0, 20));
         topBar.setAlignment(Pos.TOP_RIGHT);
         topBar.getChildren().add(btnMenuClose);
 
-        VBox buttonBox = new VBox(20); // spacing between reset/export
-        buttonBox.setPadding(new Insets(0, 0, -20, 0)); // push everything down more
+        VBox buttonBox = new VBox(20);
+        buttonBox.setPadding(new Insets(0, 0, -20, 0));
         buttonBox.setAlignment(Pos.BOTTOM_CENTER);
         buttonBox.getChildren().addAll(btnResetScores, btnExportScores);
 
@@ -598,6 +639,17 @@ public class TicTacToeApp extends Application {
         } catch (IOException e) {
             System.err.println("Error writing to score log: " + e.getMessage());
         }
+    }
+
+    private boolean isBoardFull(int[][] board) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i][j] == -1) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -637,4 +689,5 @@ public class TicTacToeApp extends Application {
         };
         return board;
     }
+
 }

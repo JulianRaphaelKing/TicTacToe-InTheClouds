@@ -46,10 +46,12 @@ public class FileAssets  {
     public static Image GRID;
     public static Image BKG_DAY;
     public static Image BKG_NIGHT;
+    public static Image BKG_DRAW;
 
     //Text Images
     public static Image PLR_O_MSG;
     public static Image PLR_X_MSG;
+    public static Image DRAW_MSG;
 
     //Music
     public static Media BKG_MUSIC;
@@ -110,10 +112,12 @@ public class FileAssets  {
         GRID = loadImages("images/backgrounds/Grid.png");
         BKG_DAY = loadImages("images/backgrounds/bkgDay.png");
         BKG_NIGHT = loadImages("images/backgrounds/bkgNight.png");
+        BKG_DRAW = loadImages("images/backgrounds/bkgDraw.png");
 
         //Text Images
         PLR_O_MSG = loadImages("images/texts/plrOMsg.png");
         PLR_X_MSG = loadImages("images/texts/plrXMsg.png");
+        DRAW_MSG = loadImages("images/texts/drawMsg.png");
 
 ////        //Music
 //        BKG_MUSIC = loadMedia("images/buttons/bkgMusic.wav");
