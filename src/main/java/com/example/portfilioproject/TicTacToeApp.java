@@ -8,20 +8,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -49,7 +43,6 @@ public class TicTacToeApp extends Application {
         //load images
         FileAssets.loadFiles();
 
-
         //set scene to main screen
         Scene scene = new Scene(getMainPane(primaryStage), 675, 800);
         primaryStage.setScene(scene);
@@ -76,7 +69,7 @@ public class TicTacToeApp extends Application {
         //Sound State
         BooleanProperty isMuted = new SimpleBooleanProperty(false);
 
-        //background
+        //Background Image
         ImageView background = new ImageView(FileAssets.BACKGROUND);
         background.setFitWidth(675);
         background.setFitHeight(800);
@@ -84,19 +77,23 @@ public class TicTacToeApp extends Application {
 
         mainPane = new BorderPane();
 
-        //create horizontal box
+        //create horizontal box to hold the top bar
         HBox topBar = new HBox();
         topBar.setAlignment(Pos.TOP_RIGHT);
         topBar.setSpacing(18);
         topBar.setPadding(new Insets(18, 32, 10, 10));
 
-        //Create children - for hBox
+        //Create children - for the top bar
 
         //Button Close
         Button btnClose = new Button();
         btnClose.setGraphic(new ImageView(FileAssets.CLOSE));
         btnClose.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+
+        //-click action
         btnClose.setOnAction(e -> primaryStage.close());
+
+        //-hover action
         btnClose.setOnMouseEntered(e -> btnClose.setGraphic(new ImageView(FileAssets.CLOSE_HOVER)));
         btnClose.setOnMouseExited(e -> btnClose.setGraphic(new ImageView(FileAssets.CLOSE)));
 
@@ -104,7 +101,11 @@ public class TicTacToeApp extends Application {
         Button btnMin = new Button();
         btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE));
         btnMin.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+
+        //-click action
         btnMin.setOnAction(e -> primaryStage.setIconified(true));
+
+        //-hover action
         btnMin.setOnMouseEntered(e -> btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE_HOVER)));
         btnMin.setOnMouseExited(e -> btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE)));
 
@@ -112,8 +113,11 @@ public class TicTacToeApp extends Application {
         Button btnMute = new Button();
         btnMute.setGraphic(new ImageView(FileAssets.MUTE));
         btnMute.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+
+        //-click action
         btnMute.setOnAction(e -> isMuted.set(!isMuted.get()));
 
+        //-hover action
         btnMute.setOnMouseEntered(e -> {
             if(isMuted.get()) {
                 btnMute.setGraphic(new ImageView(FileAssets.MUTE));
@@ -150,6 +154,7 @@ public class TicTacToeApp extends Application {
             primaryStage.setX(e.getScreenX());
             primaryStage.setY(e.getScreenY());
         });
+
         //apply menu bar to the top of the border pane
         mainPane.setTop(topBar);
 
@@ -173,10 +178,12 @@ public class TicTacToeApp extends Application {
         //Create center of the screen
         ImageView clouds = new ImageView(FileAssets.BACKGROUND_CLOUDS);
 
+        //start button
         Button btnStart = new Button();
         btnStart.setGraphic(new ImageView(FileAssets.START));
         btnStart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
 
+        //menu button
         Button btnMenu = new Button();
         btnMenu.setGraphic(new ImageView(FileAssets.MENU));
         btnMenu.setStyle("-fx-background-color: transparent; -fx-padding: 0");
@@ -184,6 +191,7 @@ public class TicTacToeApp extends Application {
         //Handle hover actions for button start
         BooleanProperty isStartHovered = new SimpleBooleanProperty(false);
         isStartHovered.addListener((observable, oldValue, newValue) -> {
+            //when hover over the start button, the background and music changes
             if(isStartHovered.get()) {
                 clouds.setImage(FileAssets.BACKGROUND_CLOUDS_HOVER);
                 btnStart.setGraphic(new ImageView(FileAssets.START_HOVER));
@@ -197,26 +205,36 @@ public class TicTacToeApp extends Application {
                 //mediaPlayer.play();
             }
         });
+
+        //trigger the changes when the start button is hovered
         btnStart.setOnMouseEntered(e -> isStartHovered.set(true));
         btnStart.setOnMouseExited(e -> isStartHovered.set(false));
+
+        //when start button is clicked, change the center of the screen to the game play
         btnStart.setOnAction(e -> {
             mainPane.setCenter(getGamePane(stage));
         });
 
+        //menu button hover actions
         btnMenu.setOnMouseEntered(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU_HOVER));});
         btnMenu.setOnMouseExited(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU));});
+
+        //when menu button is clicked, open the menu stage
         btnMenu.setOnAction(e -> {getMenu(stage);});
 
         //layer for everything that belongs in the center
         StackPane centerLayering = new StackPane();
 
+        //VBox to hold the start button in the center
         VBox centerContent = new VBox();
         centerContent.setAlignment(Pos.CENTER);
         centerContent.getChildren().add(btnStart);
 
+        //hold the menu button in the top right with adjusted margins
         StackPane.setAlignment(btnMenu, Pos.TOP_RIGHT);
         StackPane.setMargin(btnMenu, new Insets(25, 35, 0, 0));
 
+        //stack everything on to the stack pane
         centerLayering.getChildren().addAll(clouds, centerContent, btnMenu);
 
         return centerLayering;
