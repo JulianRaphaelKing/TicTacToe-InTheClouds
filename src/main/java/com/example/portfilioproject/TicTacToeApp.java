@@ -70,7 +70,7 @@ public class TicTacToeApp extends Application {
         String fastBgmPath = Objects.requireNonNull(getClass().getResource("/images/bkgMusicSpeed.wav")).toExternalForm();
         Media fastBgm = new Media(fastBgmPath);
         fastBgmPlayer = new MediaPlayer(fastBgm);
-        fastBgmPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
+        fastBgmPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         fastBgmPlayer.stop();
 
         // Set scene to main screen
@@ -122,7 +122,9 @@ public class TicTacToeApp extends Application {
         Button btnClose = new Button();
         btnClose.setGraphic(new ImageView(FileAssets.CLOSE));
         btnClose.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+        // -Action effect
         btnClose.setOnAction(e -> primaryStage.close());
+        // -Hover effect
         btnClose.setOnMouseEntered(e -> btnClose.setGraphic(new ImageView(FileAssets.CLOSE_HOVER)));
         btnClose.setOnMouseExited(e -> btnClose.setGraphic(new ImageView(FileAssets.CLOSE)));
 
@@ -130,10 +132,12 @@ public class TicTacToeApp extends Application {
         Button btnMin = new Button();
         btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE));
         btnMin.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+        // -Action effect
         btnMin.setOnAction(e -> {
             primaryStage.setIconified(true);
             isMuted.set(true);
         });
+        // -Hover effect
         btnMin.setOnMouseEntered(e -> btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE_HOVER)));
         btnMin.setOnMouseExited(e -> btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE)));
 
@@ -141,7 +145,9 @@ public class TicTacToeApp extends Application {
         Button btnMute = new Button();
         btnMute.setGraphic(new ImageView(FileAssets.MUTE));
         btnMute.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+        // -Action effect
         btnMute.setOnAction(e -> isMuted.set(!isMuted.get()));
+        // -Hover effect
         btnMute.setOnMouseEntered(e -> btnMute.setGraphic(new ImageView(isMuted.get() ? FileAssets.MUTE : FileAssets.MUTE_HOVER)));
         btnMute.setOnMouseExited(e -> btnMute.setGraphic(new ImageView(isMuted.get() ? FileAssets.MUTE_HOVER : FileAssets.MUTE)));
 
@@ -186,15 +192,22 @@ public class TicTacToeApp extends Application {
         // Create background for center of the screen
         ImageView clouds = new ImageView(FileAssets.BACKGROUND_CLOUDS);
 
-        // Start Button
-        Button btnStart = new Button();
-        btnStart.setGraphic(new ImageView(FileAssets.START));
-        btnStart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
-
         // Menu Button
         Button btnMenu = new Button();
         btnMenu.setGraphic(new ImageView(FileAssets.MENU));
         btnMenu.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+        // -Action effects
+        btnMenu.setOnAction(e -> {
+            getMenu(stage);
+        });
+        // -Hover effects
+        btnMenu.setOnMouseEntered(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU_HOVER));});
+        btnMenu.setOnMouseExited(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU));});
+
+        // Start Button
+        Button btnStart = new Button();
+        btnStart.setGraphic(new ImageView(FileAssets.START));
+        btnStart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
 
         // Start button hover effects (including background transition and music change)
         BooleanProperty isStartHovered = new SimpleBooleanProperty(false);
@@ -226,15 +239,6 @@ public class TicTacToeApp extends Application {
             mainPane.setCenter(getGamePane(stage));
         });
 
-        // Menu button hover effects
-        btnMenu.setOnMouseEntered(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU_HOVER));});
-        btnMenu.setOnMouseExited(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU));});
-
-        // When menu button is clicked, open the menu stage
-        btnMenu.setOnAction(e -> {
-            getMenu(stage);
-        });
-
         // VBox to hold the start button in the center
         VBox centerContent = new VBox(btnStart);
         centerContent.setAlignment(Pos.CENTER);
@@ -260,6 +264,7 @@ public class TicTacToeApp extends Application {
      * @return a StackPane containing the game board elements, including the grid and background
      */
     private Pane getGamePane(Stage stage) {
+        // Create an empty starting board and set the player to X
         int[][] board = resetBoard();
         currentPlayer = 'X';
 
@@ -418,6 +423,7 @@ public class TicTacToeApp extends Application {
      */
     private int[] getCreatorAIMove(int[][] board) {
 
+        // Make a random move (10% chance)
         if (Math.random() < 0.10) {
             return getRandomMove(board);
         }
@@ -434,12 +440,10 @@ public class TicTacToeApp extends Application {
             if (blockMove != null) return blockMove;
         }
 
-
         // Take the center if it is available (70% chance)
         if(Math.random() < 0.7) {
             if (board[1][1] == -1) return new int[]{1, 1};
         }
-
 
         // Try to take corners
         int[][] corners = {{0,0}, {0,2}, {2,0}, {2,2}};
@@ -527,12 +531,12 @@ public class TicTacToeApp extends Application {
         Button restart = new Button();
         restart.setGraphic(new ImageView(FileAssets.RESTART));
         restart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
+        // -Action effects
         restart.setOnAction(e -> {
             restartIsClicked();
             mainPane.setCenter(getTitlePane(stage));
         });
-
-        // Restart Button Hover effects
+        // -Hover effects
         restart.setOnMouseEntered(mouseEvent -> {restart.setGraphic(new ImageView(FileAssets.RESTART_HOVER));});
         restart.setOnMouseExited(mouseEvent -> {restart.setGraphic(new ImageView(FileAssets.RESTART));});
 
@@ -722,7 +726,6 @@ public class TicTacToeApp extends Application {
         // Switch the mode when clicked
         btnChangeMode.setOnAction(e -> {
             vsComputer.set(!vsComputer.get());
-            System.out.println("Mode Switched: " + (vsComputer.get() ? "Player VS Computer" : "Player VS Player"));
         });
 
         // Create Menu Close Button
@@ -776,19 +779,25 @@ public class TicTacToeApp extends Application {
      */
 
     private static void exportScoresToFile() {
+        // Create file name
         String fileName = "scores_log.txt";
+
+        //Create file and try writing to it
         try (PrintWriter writer = new PrintWriter(new FileWriter(fileName, true))) {
+            // Get the current date and time and create a formatter
             LocalDateTime now = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
 
-
+            // Write to file
             writer.println("X Wins: " + xWinCount);
             writer.println("O Wins: " + oWinCount);
             writer.println("Timestamp: " + now.format(formatter));
             writer.println("----------------------------");
 
+            // Verify that it was exported successfully
             System.out.println("Scores exported to " + fileName);
         } catch (IOException e) {
+            // Error message
             System.err.println("Error writing to score log: " + e.getMessage());
         }
     }
