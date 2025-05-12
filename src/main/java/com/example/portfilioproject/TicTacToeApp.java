@@ -19,11 +19,17 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
+/**
+ * Main point for the Tic-Tac-Toe application.
+ * This class handles the application lifecycle, UI setup, and game logic orchestration.
+ */
 public class TicTacToeApp extends Application {
 
 
-    //Private Variables
+    // Main UI components and state trackers
     private BorderPane mainPane;
     private Boolean preview = false;
     private char currentPlayer = 'X';
@@ -33,6 +39,9 @@ public class TicTacToeApp extends Application {
     private static Label xWinsText = new Label("0");
     private static Label oWinsText = new Label("0");
     private static Stage menuStage;
+    private MediaPlayer bgmPlayer;
+    private MediaPlayer fastBgmPlayer;
+
 
     public static void main(String[] args) {
         launch(args);
@@ -40,10 +49,22 @@ public class TicTacToeApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        //load images
+        // Load required assets at startup
         FileAssets.loadFiles();
 
-        //set scene to main screen
+        String bgmPath = getClass().getResource("/images/bkgMusic.wav").toExternalForm();
+        Media bgm = new Media(bgmPath);
+        bgmPlayer = new MediaPlayer(bgm);
+        bgmPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
+        bgmPlayer.play();
+
+        String fastBgmPath = getClass().getResource("/images/bkgMusic.wav").toExternalForm();
+        Media fastBgm = new Media(fastBgmPath);
+        bgmPlayer = new MediaPlayer(fastBgm);
+        bgmPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
+        bgmPlayer.stop();
+
+        // Set scene to main screen
         Scene scene = new Scene(getMainPane(primaryStage), 675, 800);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Title Screen");
@@ -51,6 +72,13 @@ public class TicTacToeApp extends Application {
         primaryStage.setHeight(800);
         primaryStage.setWidth(675);
         primaryStage.show();
+
+        // Close the menuStage when primaryStage closes
+        primaryStage.setOnCloseRequest(event -> {
+            if (menuStage != null && menuStage.isShowing()) {
+                menuStage.close();
+            }
+        });
     }
 
     /**
@@ -66,10 +94,10 @@ public class TicTacToeApp extends Application {
      * @return a StackPane containing the complete layout for the main application screen
      */
     public Pane getMainPane(Stage primaryStage) {
-        //Sound State
+        // Sound State
         BooleanProperty isMuted = new SimpleBooleanProperty(false);
 
-        //Background Image
+        // Background Image
         ImageView background = new ImageView(FileAssets.BACKGROUND);
         background.setFitWidth(675);
         background.setFitHeight(800);
@@ -77,75 +105,44 @@ public class TicTacToeApp extends Application {
 
         mainPane = new BorderPane();
 
-        //create horizontal box to hold the top bar
+        // Create draggable title bar with buttons (mute, minimize, close)
         HBox topBar = new HBox();
         topBar.setAlignment(Pos.TOP_RIGHT);
         topBar.setSpacing(18);
         topBar.setPadding(new Insets(18, 32, 10, 10));
 
-        //Create children - for the top bar
-
-        //Button Close
+        // Button Close
         Button btnClose = new Button();
         btnClose.setGraphic(new ImageView(FileAssets.CLOSE));
         btnClose.setStyle("-fx-background-color: transparent; -fx-padding: 0");
-
-        //-click action
         btnClose.setOnAction(e -> primaryStage.close());
-
-        //-hover action
         btnClose.setOnMouseEntered(e -> btnClose.setGraphic(new ImageView(FileAssets.CLOSE_HOVER)));
         btnClose.setOnMouseExited(e -> btnClose.setGraphic(new ImageView(FileAssets.CLOSE)));
 
-        //Button Minimize
+        // Button Minimize
         Button btnMin = new Button();
         btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE));
         btnMin.setStyle("-fx-background-color: transparent; -fx-padding: 0");
-
-        //-click action
         btnMin.setOnAction(e -> primaryStage.setIconified(true));
-
-        //-hover action
         btnMin.setOnMouseEntered(e -> btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE_HOVER)));
         btnMin.setOnMouseExited(e -> btnMin.setGraphic(new ImageView(FileAssets.MINIMIZE)));
 
-        //Button Mute
+        // Button Mute
         Button btnMute = new Button();
         btnMute.setGraphic(new ImageView(FileAssets.MUTE));
         btnMute.setStyle("-fx-background-color: transparent; -fx-padding: 0");
-
-        //-click action
         btnMute.setOnAction(e -> isMuted.set(!isMuted.get()));
+        btnMute.setOnMouseEntered(e -> btnMute.setGraphic(new ImageView(isMuted.get() ? FileAssets.MUTE : FileAssets.MUTE_HOVER)));
+        btnMute.setOnMouseExited(e -> btnMute.setGraphic(new ImageView(isMuted.get() ? FileAssets.MUTE_HOVER : FileAssets.MUTE)));
 
-        //-hover action
-        btnMute.setOnMouseEntered(e -> {
-            if(isMuted.get()) {
-                btnMute.setGraphic(new ImageView(FileAssets.MUTE));
-            } else {
-                btnMute.setGraphic(new ImageView(FileAssets.MUTE_HOVER));
-                btnMute.setGraphic(new ImageView(FileAssets.MUTE_HOVER));
-            }
-        });
-        btnMute.setOnMouseExited(e -> {
-            if(isMuted.get()) {
-                btnMute.setGraphic(new ImageView(FileAssets.MUTE_HOVER));
-            } else {
-                btnMute.setGraphic(new ImageView(FileAssets.MUTE));
-            }
-        });
+        // Sync icon when mute state changes
+        isMuted.addListener((observable, oldValue, newValue) ->
+                btnMute.setGraphic(new ImageView(newValue ? FileAssets.MUTE_HOVER : FileAssets.MUTE)));
 
-        isMuted.addListener((observable, oldValue, newValue) -> {
-            if (isMuted.get()) {
-                btnMute.setGraphic(new ImageView(FileAssets.MUTE_HOVER));
-            } else {
-                btnMute.setGraphic(new ImageView(FileAssets.MUTE));
-            }
-        });
-
-        //add hBox to top of the screen
+        // Add buttons to the top bar
         topBar.getChildren().addAll(btnMute, btnMin, btnClose);
 
-        //make screen draggable only at the top
+        // Make entire top bar draggable
         topBar.setOnMousePressed(e -> {
             primaryStage.setX(e.getScreenX());
             primaryStage.setY(e.getScreenY());
@@ -155,15 +152,10 @@ public class TicTacToeApp extends Application {
             primaryStage.setY(e.getScreenY());
         });
 
-        //apply menu bar to the top of the border pane
+        // Assemble main layout
         mainPane.setTop(topBar);
-
-        //apply title pane to the center of the border pane
         mainPane.setCenter(getTitlePane(primaryStage));
-
-        //wrap everything with StackPane
-        StackPane paneLayering = new StackPane();
-        paneLayering.getChildren().addAll(background, mainPane);
+        StackPane paneLayering = new StackPane(background, mainPane);
         return paneLayering;
     }
 
@@ -175,66 +167,61 @@ public class TicTacToeApp extends Application {
      * @return a StackPane containing the title screen layout with interactive start button
      */
     private Pane getTitlePane(Stage stage) {
-        //Create center of the screen
+        // Create background for center of the screen
         ImageView clouds = new ImageView(FileAssets.BACKGROUND_CLOUDS);
 
-        //start button
+        // Start Button
         Button btnStart = new Button();
         btnStart.setGraphic(new ImageView(FileAssets.START));
         btnStart.setStyle("-fx-background-color: transparent; -fx-padding: 0");
 
-        //menu button
+        // Menu Button
         Button btnMenu = new Button();
         btnMenu.setGraphic(new ImageView(FileAssets.MENU));
         btnMenu.setStyle("-fx-background-color: transparent; -fx-padding: 0");
 
-        //Handle hover actions for button start
+        // Start button hover effects (including background transition)
         BooleanProperty isStartHovered = new SimpleBooleanProperty(false);
         isStartHovered.addListener((observable, oldValue, newValue) -> {
-            //when hover over the start button, the background and music changes
             if(isStartHovered.get()) {
                 clouds.setImage(FileAssets.BACKGROUND_CLOUDS_HOVER);
                 btnStart.setGraphic(new ImageView(FileAssets.START_HOVER));
-                //mediaPlayer.stop();
-                //fastMediaPlayer.play();
-
+                bgmPlayer.stop();
+                fastBgmPlayer.play();
             } else {
                 clouds.setImage(FileAssets.BACKGROUND_CLOUDS);
                 btnStart.setGraphic(new ImageView(FileAssets.START));
-                //fastMediaPlayer.stop();
-                //mediaPlayer.play();
+                bgmPlayer.play();
+                fastBgmPlayer.stop();
             }
         });
 
-        //trigger the changes when the start button is hovered
+        // Trigger the changes when the start button is hovered
         btnStart.setOnMouseEntered(e -> isStartHovered.set(true));
         btnStart.setOnMouseExited(e -> isStartHovered.set(false));
 
-        //when start button is clicked, change the center of the screen to the game play
+        // When start button is clicked, change the center of the screen to the game play
         btnStart.setOnAction(e -> {
             mainPane.setCenter(getGamePane(stage));
         });
 
-        //menu button hover actions
+        // Menu button hover effects
         btnMenu.setOnMouseEntered(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU_HOVER));});
         btnMenu.setOnMouseExited(e -> {btnMenu.setGraphic(new ImageView(FileAssets.MENU));});
 
-        //when menu button is clicked, open the menu stage
+        // When menu button is clicked, open the menu stage
         btnMenu.setOnAction(e -> {getMenu(stage);});
 
-        //layer for everything that belongs in the center
-        StackPane centerLayering = new StackPane();
-
-        //VBox to hold the start button in the center
-        VBox centerContent = new VBox();
+        // VBox to hold the start button in the center
+        VBox centerContent = new VBox(btnStart);
         centerContent.setAlignment(Pos.CENTER);
-        centerContent.getChildren().add(btnStart);
 
-        //hold the menu button in the top right with adjusted margins
+        // Hold the menu button in the top right with adjusted margins
         StackPane.setAlignment(btnMenu, Pos.TOP_RIGHT);
         StackPane.setMargin(btnMenu, new Insets(25, 35, 0, 0));
 
-        //stack everything on to the stack pane
+        // Layer for everything that belongs in the center
+        StackPane centerLayering = new StackPane();
         centerLayering.getChildren().addAll(clouds, centerContent, btnMenu);
 
         return centerLayering;
@@ -253,21 +240,16 @@ public class TicTacToeApp extends Application {
         int board[][] = resetBoard();
         currentPlayer = 'X';
 
-        //create grid to host buttons
+        // Create grid to host buttons
         GridPane grid = new GridPane();
         grid.setPrefSize(465, 465);
         grid.setAlignment(Pos.CENTER);
 
-        //Set row & column sizes - 465 total size / 3
+        // Setup grid constraints and add buttons
         for(int i = 0; i < 3; i++) {
-            ColumnConstraints col = new ColumnConstraints(155);
-            RowConstraints row = new RowConstraints(155);
-            grid.getColumnConstraints().add(col);
-            grid.getRowConstraints().add(row);
-        }
+            grid.getColumnConstraints().add(new ColumnConstraints(155));
+            grid.getRowConstraints().add(new RowConstraints(155));
 
-        //Add the buttons for grid
-        for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
                 Button gridBtn = new Button();
                 gridBtn.setMinSize(155, 155);
@@ -275,7 +257,7 @@ public class TicTacToeApp extends Application {
                 int row = i;
                 int col = j;
 
-                //when grid button is clicked, call turns method
+                // When grid button is clicked, call turns method
                 gridBtn.setOnAction(e -> {
                     if(!isClicked[row][col]) {
                         turns(row, col, gridBtn, currentPlayer, board, stage);
@@ -284,7 +266,7 @@ public class TicTacToeApp extends Application {
 
                 });
 
-                //grid button hovered preview
+                // Preview move on hover
                 gridBtn.setOnMouseEntered(e -> {
                     if(gridBtn.getGraphic() == null && !isClicked[row][col]) {
                         gridBtn.setGraphic(new ImageView(currentPlayer == 'X' ? FileAssets.X : FileAssets.O));
@@ -297,11 +279,11 @@ public class TicTacToeApp extends Application {
                         preview = false;
                     }
                 });
-                //add button to grid and the 2D array
                 grid.add(gridBtn, i, j);
             }
         }
-        //stack all elements
+
+        // Stack all elements
         ImageView lines = new ImageView(FileAssets.GRID);
         ImageView bkgCloud = new ImageView(FileAssets.BKG_CLOUDS_BLURRED);
         StackPane gameLayering = new StackPane();
@@ -322,9 +304,12 @@ public class TicTacToeApp extends Application {
      * @param board the 2D integer array representing the current state of the game board
      */
     private void turns(int row, int col, Button gridBtn, char currentPlayer, int[][] board, Stage stage){
+        // Set the clicked grid to the current player's icon
         gridBtn.setGraphic(new ImageView(currentPlayer == 'X' ? FileAssets.X : FileAssets.O));
         isClicked[row][col] = true;
-        board[row][col] = currentPlayer == 'X' ? 0 : 1;
+        board[row][col] = (currentPlayer == 'X' ? 0 : 1);
+
+        // Check for a winner or tie
         if(checkWin(row, col, currentPlayer, board)) {
             mainPane.setCenter(currentPlayer == 'X' ? getXWinsPane(stage) : getOWinsPane(stage));
         } else if (isBoardFull(board)) {
@@ -347,45 +332,16 @@ public class TicTacToeApp extends Application {
      * @return true if the current player wins, false otherwise
      */
     private boolean checkWin(int row, int col, char currentPlayer, int[][] board) {
-        int player;
-        if(currentPlayer == 'X') {
-            player = 0;
-        } else {
-            player = 1;
-        }
-        // First Row
-        if ( (board[0][0] == player && board[0][1] == player && board[0][2] == player) ) {
-            return true;
-        }
-        // Second Row
-        else if( (board[1][0] == player && board[1][1] == player && board[1][2] == player) ) {
-            return true;
-        }
-        // Third Row
-        else if( (board[2][0] == player && board[2][1] == player && board[2][2] == player) ) {
-            return true;
-        }
-        // Diag top left down
-        else if( (board[0][0] == player && board[1][1] == player && board[2][2] == player) ) {
-            return true;
-        }
-        // Diag Right
-        else if( (board[0][2] == player && board[1][1] == player && board[2][0] == player) ) {
-            return true;
-        }
-        // First col down
-        else if( (board[0][0] == player && board[1][0] == player && board[2][0] == player) ) {
-            return true;
-        }
-        // Second col down
-        else if( (board[0][1] == player && board[1][1] == player && board[2][1] == player) ) {
-            return true;
-        }
-        // Third col down
-        else if( (board[0][2] == player && board[1][2] == player && board[2][2] == player) ) {
-            return true;
-        }
-        return false;
+        // Check to see if the current player has won
+        int player = (currentPlayer == 'X' ? 0 : 1);
+        return (board[0][0] == player && board[0][1] == player && board[0][2] == player) ||
+                (board[1][0] == player && board[1][1] == player && board[1][2] == player) ||
+                (board[2][0] == player && board[2][1] == player && board[2][2] == player) ||
+                (board[0][0] == player && board[1][1] == player && board[2][2] == player) ||
+                (board[0][2] == player && board[1][1] == player && board[2][0] == player) ||
+                (board[0][0] == player && board[1][0] == player && board[2][0] == player) ||
+                (board[0][1] == player && board[1][1] == player && board[2][1] == player) ||
+                (board[0][2] == player && board[1][2] == player && board[2][2] == player);
     }
     private Pane getTiePane(Stage stage) {
         StackPane winnerLayer = new StackPane();
@@ -516,6 +472,7 @@ public class TicTacToeApp extends Application {
 
         menuStage = new Stage();
         menuStage.initStyle(StageStyle.UNDECORATED);
+        menuStage.initOwner(stage);
         menuStage.setHeight(395);
         menuStage.setWidth(265);
         menuStage.setResizable(false);
