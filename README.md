@@ -1,8 +1,11 @@
 
 # ☁  Tic-Tac-Toe in the Clouds | README
-
-A cozy **JavaFX Tic-Tac-Toe game** that elevates the classic game with calm aesthetics, hover effects,
-and human-like AI that simulates the creators tic-tac-toe strategy.
+<div style="display: flex; align-items: center; max-width: 600px;">
+  <img src="readme-assets/logo.png" alt="Tic-Tac-Toe in the Clouds Logo" width="150" style="margin-right: 20px;"/>
+  <p style="margin: 0;">
+    <strong>A calm, cozy, and creative spin on Tic-Tac-Toe</strong> built with JavaFX, featuring chill aesthetics, subtle hover interactions, and an AI that thinks like the creator.
+  </p>
+</div>
 
 ---
 
@@ -29,6 +32,8 @@ and human-like AI that simulates the creators tic-tac-toe strategy.
 ```
 src/
  └── main/
+     └── readme-assets/
+     │  └── logo.png
      ├── README.md
      ├── LICENSE
      ├── java/
@@ -40,6 +45,7 @@ src/
               └── images/
                    ├── bkgMusic.wav
                    ├── bkgMusicSpeed.wav
+                   ├── logo.png
                    ├── backgrounds/
                    │     ├── bkgClouds.gif
                    │     ├── bkgCloudsHover.gif
@@ -167,6 +173,6 @@ This project is licensed under the [MIT License](LICENSE). Feel free to use, mod
 **Student developer**
 
 I’m a student developer passionate about learning and creating as many creative projects as I can. I’m always working on a side project, exploring new skills and bringing creative ideas to life through code.
-Tic-Tac-Toe in the Clouds is part of my journey exploring game design, UI/UX, and creative coding—bringing classic games to life with a cozy, personal touch.
+Tic-Tac-Toe in the Clouds is part of my journey exploring game design, UI/UX, and creative coding.
 
 ---

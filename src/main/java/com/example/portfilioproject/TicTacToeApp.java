@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -80,6 +81,7 @@ public class TicTacToeApp extends Application {
         primaryStage.initStyle(StageStyle.UNDECORATED);
         primaryStage.setHeight(800);
         primaryStage.setWidth(675);
+        primaryStage.getIcons().add(FileAssets.LOGO);
         primaryStage.show();
 
         // Close the menuStage when primaryStage closes

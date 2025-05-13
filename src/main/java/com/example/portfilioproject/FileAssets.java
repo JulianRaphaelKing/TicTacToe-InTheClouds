@@ -1,13 +1,14 @@
 package com.example.portfilioproject;
 
 import javafx.scene.image.Image;
-import javafx.scene.media.Media;
 
 import java.util.Objects;
-//import javafx.scene.media.Media;
 
 
 public class FileAssets  {
+
+    //Logo Image
+    public static Image LOGO;
 
     //Title Bar Buttons
     public static Image CLOSE;
@@ -118,6 +119,9 @@ public class FileAssets  {
         PLR_O_MSG = loadImages("images/texts/plrOMsg.png");
         PLR_X_MSG = loadImages("images/texts/plrXMsg.png");
         DRAW_MSG = loadImages("images/texts/drawMsg.png");
+
+        //Logo Image
+        LOGO = loadImages("images/logo.png");
     }
 
     /**
