@@ -1,5 +1,5 @@
 
-# ☁  Tic-Tac-Toe in the Clouds | README
+# ☁  Tic-Tac-Toe In The Clouds | README
 <div style="display: flex; align-items: center; max-width: 600px;">
   <img src="readme-assets/logo.png" alt="Tic-Tac-Toe in the Clouds Logo" width="150" style="margin-right: 20px;"/>
   <p style="margin: 0;">
