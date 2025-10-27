@@ -172,7 +172,7 @@ This project is licensed under the [MIT License](LICENSE). Feel free to use, mod
 
 **Student developer**
 
-I’m a student developer passionate about learning and creating as many creative projects as I can. I’m always working on a side project, exploring new skills and bringing creative ideas to life through code.
+I’m a student developer passionate about learning and creating as many projects as I can. I’m always working on a side project, exploring new skills, looking for new solutions, and bringing creative ideas to life through code.
 Tic-Tac-Toe in the Clouds is part of my journey exploring game design, UI/UX, and creative coding.
 
 ---
